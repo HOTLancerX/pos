@@ -12,12 +12,21 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const search = searchParams.get('search') ?? '';
         const status = searchParams.get('status') ?? '';
+        const phone = searchParams.get('phone') ?? '';
         const page = Math.max(1, parseInt(searchParams.get('page') ?? '1', 10));
         const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '50', 10)));
         const skip = (page - 1) * limit;
 
         await initializeCustomersCollection();
         const collection = await getCustomersCollection();
+
+        if (phone) {
+            const customer = await collection.findOne({ phone });
+            if (customer) {
+                return NextResponse.json({ customer: { ...customer, _id: customer._id?.toString() } });
+            }
+            return NextResponse.json({ customer: null });
+        }
 
         const query: Record<string, any> = {};
         if (status) query.status = status;
@@ -50,10 +59,10 @@ export async function POST(req: NextRequest) {
         if (!caller) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
         const body = await req.json();
-        const { name, email, phone, address, city, state, zipCode, taxNumber, notes } = body;
+        const { name, email, phone, address, city, state, zipCode, taxNumber, notes, quickCreate } = body;
 
-        if (!name || !phone) {
-            return NextResponse.json({ error: 'Name and phone are required' }, { status: 400 });
+        if (!phone) {
+            return NextResponse.json({ error: 'Phone number is required' }, { status: 400 });
         }
 
         await initializeCustomersCollection();
@@ -61,18 +70,32 @@ export async function POST(req: NextRequest) {
 
         const existing = await collection.findOne({ phone });
         if (existing) {
-            return NextResponse.json({ error: 'Phone number already exists' }, { status: 409 });
+            return NextResponse.json({ customer: { ...existing, _id: existing._id?.toString() } });
         }
 
+        const customerName = name || `Customer ${phone.slice(-4)}`;
+
         const customer = {
-            name, email: email || '', phone, address: address || '', city: city || '',
-            state: state || '', zipCode: zipCode || '', taxNumber: taxNumber || '',
-            notes: notes || '', status: 'active' as const, dueAmount: 0,
-            createdAt: new Date(), updatedAt: new Date(),
+            name: customerName,
+            email: email || '',
+            phone,
+            address: address || '',
+            city: city || '',
+            state: state || '',
+            zipCode: zipCode || '',
+            taxNumber: taxNumber || '',
+            notes: notes || '',
+            status: 'active' as const,
+            dueAmount: 0,
+            walletBalance: 0,
+            totalPurchases: 0,
+            totalPaid: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
         };
 
         const result = await collection.insertOne(customer as any);
-        return NextResponse.json({ _id: result.insertedId.toString(), ...customer }, { status: 201 });
+        return NextResponse.json({ customer: { _id: result.insertedId.toString(), ...customer } }, { status: 201 });
     } catch (error) {
         console.error('Customers POST error:', error);
         return NextResponse.json({ error: 'Failed to create customer' }, { status: 500 });

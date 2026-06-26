@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
+import dynamic from "next/dynamic";
+
+const SaleDetails = dynamic(() => import("./SaleDetails"), { ssr: false });
 
 interface Sale {
     _id: string;
@@ -9,6 +12,7 @@ interface Sale {
     customerName: string;
     total: number;
     paidAmount: number;
+    walletUsed: number;
     dueAmount: number;
     status: string;
     paymentStatus: string;
@@ -16,7 +20,7 @@ interface Sale {
     createdAt: string;
 }
 
-export default function SaleList() {
+function SaleListView() {
     const [sales, setSales] = useState<Sale[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -53,7 +57,7 @@ export default function SaleList() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold text-gray-900">Sales</h1>
-                <a href="/admin/pos/sales/new" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg hover:shadow-md transition-all">
+                <a href="/admin/pos" className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg hover:shadow-md transition-all">
                     <Icon icon="solar:shop-bold" width={18} /> New Sale (POS)
                 </a>
             </div>
@@ -79,6 +83,7 @@ export default function SaleList() {
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Date</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Total</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Paid</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Wallet</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Due</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Payment</th>
@@ -86,16 +91,17 @@ export default function SaleList() {
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {loading ? (
-                            <tr><td colSpan={8} className="text-center py-8"><Icon icon="svg-spinners:ring-resize" width={24} className="text-gray-400" /></td></tr>
+                            <tr><td colSpan={9} className="text-center py-8"><Icon icon="svg-spinners:ring-resize" width={24} className="text-gray-400" /></td></tr>
                         ) : sales.length === 0 ? (
-                            <tr><td colSpan={8} className="text-center py-8 text-gray-500">No sales found</td></tr>
+                            <tr><td colSpan={9} className="text-center py-8 text-gray-500">No sales found</td></tr>
                         ) : sales.map((s) => (
-                            <tr key={s._id} className="hover:bg-gray-50">
+                            <tr key={s._id} className="hover:bg-gray-50 cursor-pointer" onClick={() => window.location.href = `/admin/pos/sales/${s._id}`}>
                                 <td className="px-4 py-3 text-sm font-medium text-emerald-600">{s.saleNumber}</td>
                                 <td className="px-4 py-3 text-sm text-gray-900">{s.customerName || "Walk-in"}</td>
                                 <td className="px-4 py-3 text-sm text-gray-600">{new Date(s.createdAt).toLocaleDateString()}</td>
                                 <td className="px-4 py-3 text-sm font-medium text-gray-900">{s.total?.toFixed(2)}</td>
                                 <td className="px-4 py-3 text-sm text-green-600">{s.paidAmount?.toFixed(2)}</td>
+                                <td className="px-4 py-3 text-sm text-purple-600">{s.walletUsed ? s.walletUsed.toFixed(2) : "-"}</td>
                                 <td className="px-4 py-3 text-sm text-red-600">{s.dueAmount?.toFixed(2)}</td>
                                 <td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded-full ${statusColors[s.status] || ""}`}>{s.status}</span></td>
                                 <td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded-full ${paymentColors[s.paymentStatus] || ""}`}>{s.paymentStatus}</span></td>
@@ -114,4 +120,12 @@ export default function SaleList() {
             )}
         </div>
     );
+}
+
+export default function SaleList({ params }: { params?: { slug?: string[] } }) {
+    const slug = params?.slug;
+    if (slug && slug.length > 2) {
+        return <SaleDetails params={Promise.resolve({ slug })} />;
+    }
+    return <SaleListView />;
 }

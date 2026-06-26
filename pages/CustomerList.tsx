@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Icon } from "@iconify/react";
+import dynamic from "next/dynamic";
+
+const CustomerDetails = dynamic(() => import("./CustomerDetails"), { ssr: false });
 
 interface Customer {
     _id: string;
@@ -12,10 +15,11 @@ interface Customer {
     city: string;
     status: string;
     dueAmount: number;
+    walletBalance: number;
     createdAt: string;
 }
 
-export default function CustomerList() {
+function CustomerListView() {
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -82,6 +86,7 @@ export default function CustomerList() {
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Phone</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Email</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">City</th>
+                            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Wallet</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Status</th>
                             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-600">Due</th>
                             <th className="px-4 py-3 text-right text-sm font-semibold text-gray-600">Actions</th>
@@ -89,19 +94,21 @@ export default function CustomerList() {
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                         {loading ? (
-                            <tr><td colSpan={7} className="text-center py-8"><Icon icon="svg-spinners:ring-resize" width={24} className="text-gray-400" /></td></tr>
+                            <tr><td colSpan={8} className="text-center py-8"><Icon icon="svg-spinners:ring-resize" width={24} className="text-gray-400" /></td></tr>
                         ) : customers.length === 0 ? (
-                            <tr><td colSpan={7} className="text-center py-8 text-gray-500">No customers found</td></tr>
+                            <tr><td colSpan={8} className="text-center py-8 text-gray-500">No customers found</td></tr>
                         ) : customers.map((c) => (
-                            <tr key={c._id} className="hover:bg-gray-50">
+                            <tr key={c._id} className="hover:bg-gray-50 cursor-pointer" onClick={() => window.location.href = `/admin/pos/customers/${c._id}`}>
                                 <td className="px-4 py-3 text-sm font-medium text-gray-900">{c.name}</td>
                                 <td className="px-4 py-3 text-sm text-gray-600">{c.phone}</td>
                                 <td className="px-4 py-3 text-sm text-gray-600">{c.email}</td>
                                 <td className="px-4 py-3 text-sm text-gray-600">{c.city}</td>
+                                <td className="px-4 py-3 text-sm text-emerald-600 font-medium">{(c.walletBalance || 0) > 0 ? `৳${c.walletBalance.toFixed(2)}` : "-"}</td>
                                 <td className="px-4 py-3"><span className={`px-2 py-1 text-xs rounded-full ${c.status === "active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{c.status}</span></td>
                                 <td className="px-4 py-3 text-sm text-red-600 font-medium">{c.dueAmount > 0 ? c.dueAmount.toFixed(2) : "-"}</td>
-                                <td className="px-4 py-3 text-right">
+                                <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                                     <div className="flex items-center justify-end gap-2">
+                                        <button onClick={() => window.location.href = `/admin/pos/customers/${c._id}`} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded" title="View Details"><Icon icon="solar:eye-bold" width={16} /></button>
                                         <button onClick={() => openEdit(c)} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Icon icon="solar:pen-bold" width={16} /></button>
                                         <button onClick={() => handleDelete(c._id)} className="p-1 text-red-600 hover:bg-red-50 rounded"><Icon icon="solar:trash-bin-bold" width={16} /></button>
                                     </div>
@@ -145,4 +152,12 @@ export default function CustomerList() {
             )}
         </div>
     );
+}
+
+export default function CustomerList({ params }: { params?: { slug?: string[] } }) {
+    const slug = params?.slug;
+    if (slug && slug.length > 2) {
+        return <CustomerDetails params={Promise.resolve({ slug })} />;
+    }
+    return <CustomerListView />;
 }

@@ -3,6 +3,8 @@ import { getCollection } from '@/lib/mongodb';
 
 export interface SaleItem {
     productId: ObjectId;
+    variantId: string;
+    variantLabel: string;
     productName: string;
     productSku: string;
     quantity: number;
@@ -24,6 +26,7 @@ export interface Sale {
     shipping: number;
     total: number;
     paidAmount: number;
+    walletUsed: number;
     dueAmount: number;
     status: 'completed' | 'pending' | 'cancelled' | 'held' | 'draft';
     paymentStatus: 'unpaid' | 'partial' | 'paid';
@@ -32,6 +35,9 @@ export interface Sale {
     createdBy: string;
     createdAt: Date;
     updatedAt: Date;
+    cancelledAt?: Date;
+    cancelledBy?: string;
+    cancelReason?: string;
 }
 
 export const COLLECTION_NAME = 'pos_sales';

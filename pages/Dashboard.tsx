@@ -19,9 +19,20 @@ export default function Dashboard() {
 
     useEffect(() => {
         fetch("/api/pos/reports?type=daily")
-            .then((r) => r.json())
+            .then((r) => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then(setData)
-            .catch(console.error)
+            .catch(() => setData({
+                period: { type: "daily", start: "", end: "" },
+                sales: { total: 0, count: 0, paid: 0, due: 0 },
+                purchases: { total: 0, count: 0, paid: 0, due: 0 },
+                expenses: { total: 0, count: 0 },
+                income: { total: 0, count: 0 },
+                profit: 0,
+                totals: { customers: 0, suppliers: 0 },
+            }))
             .finally(() => setLoading(false));
     }, []);
 
@@ -33,9 +44,7 @@ export default function Dashboard() {
         );
     }
 
-    if (!data) {
-        return <div className="text-center text-gray-500 py-8">Failed to load dashboard</div>;
-    }
+    if (!data) return null;
 
     const fmt = (n: number) => new Intl.NumberFormat("en-US", { minimumFractionDigits: 2 }).format(n);
 
@@ -66,7 +75,7 @@ export default function Dashboard() {
                                 <p className="text-2xl font-bold text-gray-900 mt-1">{card.value}</p>
                                 <p className="text-xs text-gray-400 mt-1">{card.count}</p>
                             </div>
-                            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${card.color} flex items-center justify-center`}>
+                            <div className={`w-12 h-12 rounded-xl bg-linear-to-br ${card.color} flex items-center justify-center`}>
                                 <Icon icon={card.icon} width={24} className="text-white" />
                             </div>
                         </div>
@@ -81,21 +90,21 @@ export default function Dashboard() {
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">Sales</span>
                             <div className="flex-1 mx-4 bg-gray-100 rounded-full h-3">
-                                <div className="bg-gradient-to-r from-emerald-500 to-teal-600 h-3 rounded-full" style={{ width: "70%" }} />
+                                <div className="bg-linear-to-r from-emerald-500 to-teal-600 h-3 rounded-full" style={{ width: "70%" }} />
                             </div>
                             <span className="text-sm font-medium">{fmt(data.sales.total)}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">Purchases</span>
                             <div className="flex-1 mx-4 bg-gray-100 rounded-full h-3">
-                                <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full" style={{ width: "50%" }} />
+                                <div className="bg-linear-to-r from-blue-500 to-indigo-600 h-3 rounded-full" style={{ width: "50%" }} />
                             </div>
                             <span className="text-sm font-medium">{fmt(data.purchases.total)}</span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-sm text-gray-600">Expenses</span>
                             <div className="flex-1 mx-4 bg-gray-100 rounded-full h-3">
-                                <div className="bg-gradient-to-r from-red-500 to-rose-600 h-3 rounded-full" style={{ width: "30%" }} />
+                                <div className="bg-linear-to-r from-red-500 to-rose-600 h-3 rounded-full" style={{ width: "30%" }} />
                             </div>
                             <span className="text-sm font-medium">{fmt(data.expenses.total)}</span>
                         </div>

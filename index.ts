@@ -1,5 +1,6 @@
 import { addHook, type PluginMeta } from "@/hook";
 import Dashboard from "./pages/Dashboard";
+import PosTerminal from "./pages/PosTerminal";
 import CustomerList from "./pages/CustomerList";
 import SupplierList from "./pages/SupplierList";
 import BrandList from "./pages/BrandList";
@@ -23,7 +24,7 @@ export const PLUGINS: PluginMeta = {
     version: "1.0.0",
     description: "Complete Point of Sale (POS) system with sales, purchases, inventory, payments, and reports.",
     author: "System",
-    path: "",
+    path: "https://github.com/HOTLancerX/pos.git",
     icon: "solar:shop-bold",
     color: "from-violet-500 to-purple-600",
 };
@@ -186,6 +187,14 @@ export function register() {
             style: "left",
             position: 10,
             path: Dashboard,
+        },
+        {
+            key: "pos",
+            label: "POS Terminal",
+            type: "pos",
+            style: "left",
+            position: 15,
+            path: PosTerminal,
         },
         {
             key: "pos/customers",

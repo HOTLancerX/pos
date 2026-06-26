@@ -14,6 +14,9 @@ export interface Customer {
     notes: string;
     status: 'active' | 'inactive';
     dueAmount: number;
+    walletBalance: number;
+    totalPurchases: number;
+    totalPaid: number;
     createdAt: Date;
     updatedAt: Date;
 }
