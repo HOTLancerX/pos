@@ -781,7 +781,7 @@ export default function PosTerminal() {
                     <button
                         onClick={handlePayNow}
                         disabled={cart.length === 0}
-                        className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-3 bg-linear-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {walletCoversAll
                             ? "COMPLETE SALE"
@@ -916,7 +916,7 @@ export default function PosTerminal() {
                                 <button
                                     onClick={handleCheckout}
                                     disabled={saving}
-                                    className="flex-1 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold hover:shadow-lg disabled:opacity-50"
+                                    className="flex-1 py-2.5 bg-linear-to-r from-emerald-500 to-teal-600 text-white rounded-lg font-semibold hover:shadow-lg disabled:opacity-50"
                                 >
                                     {saving ? "Processing..." : "Complete Sale"}
                                 </button>
